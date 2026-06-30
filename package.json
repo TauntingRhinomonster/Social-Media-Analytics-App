@@ -11,6 +11,9 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "test:crypto": "tsx src/lib/crypto.test.ts"
   },
   "dependencies": {
@@ -26,8 +29,10 @@
   },
   "devDependencies": {
     "@types/node": "^22.15.29",
+    "@vitest/coverage-v8": "^4.1.9",
     "drizzle-kit": "^0.31.1",
     "tsx": "^4.19.4",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^4.1.9"
   }
 }
