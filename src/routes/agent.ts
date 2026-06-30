@@ -12,7 +12,12 @@ export function createAgentRoutes(env: Env) {
   const app = new Hono();
 
   app.post("/agent/run", async (c) => {
-    const body = await c.req.json();
+    let body: unknown;
+    try {
+      body = await c.req.json();
+    } catch {
+      return c.json({ error: "Invalid JSON in request body" }, 400);
+    }
     const parsed = runSchema.safeParse(body);
     if (!parsed.success) {
       return c.json({ error: parsed.error.flatten() }, 400);

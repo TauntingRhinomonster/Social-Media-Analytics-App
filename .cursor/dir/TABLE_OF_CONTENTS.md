@@ -25,9 +25,10 @@ Directory blocks group related files under a header. Sub-sections are indented u
 | `.env.example` | Template of all required environment variables. Copy to `.env` and fill values before running. |
 | `.gitignore` | Git ignore rules (node_modules, dist, .env, logs). |
 | `drizzle.config.ts` | Drizzle Kit config — points to schema and migrations output directory. |
-| `package.json` | NPM manifest: scripts (dev, build, db:*, test:crypto), production and dev dependencies. |
+| `package.json` | NPM manifest: scripts (dev, build, db:*, test, test:watch, test:coverage, test:crypto), production and dev dependencies. |
 | `README.md` | Project overview, quick-start instructions, full API endpoint reference, and project layout summary. |
 | `tsconfig.json` | TypeScript compiler options (ESM, NodeNext module resolution, strict mode). |
+| `vitest.config.ts` | Vitest configuration — includes `src/**/*.vitest.ts`, v8 coverage provider, node environment. |
 
 ---
 
@@ -38,6 +39,7 @@ Skills live under `agents/Skills/`. Each skill is a folder containing a `SKILL.m
 | File | Purpose |
 |---|---|
 | `agents/Skills/create-story/SKILL.md` | Skill for creating feature story markdown files. Triggered by `/story` or requests to create a new story. Guides the agent through gathering inputs, scoping, writing all 19 sections, saving to `docs/features/`, and updating this TOC. |
+| `agents/Skills/qa-testing/SKILL.md` | Skill for generating Vitest test files before each story or implementation task. Triggered by `/qa` or whenever a new feature is scoped. Produces AAA-pattern tests covering happy paths and edge/error paths for utilities, platform adapters, services, routes, and AI tools. |
 
 ---
 
@@ -101,7 +103,8 @@ Authentication and social platform integration stories.
 | File | Purpose |
 |---|---|
 | `src/lib/crypto.ts` | AES-256-GCM token encryption/decryption. `encryptToken(plaintext, key)` returns a `Buffer` (IV + auth tag + ciphertext). `decryptToken(buffer, key)` reverses it. Key must be a 32-byte base64 string. |
-| `src/lib/crypto.test.ts` | Smoke test for the crypto helpers (run with `npm run test:crypto`). Asserts round-trip encrypt → decrypt equality. |
+| `src/lib/crypto.test.ts` | Legacy standalone smoke test for the crypto helpers (run with `npm run test:crypto`). Asserts round-trip encrypt → decrypt equality. |
+| `src/lib/crypto.vitest.ts` | Vitest suite for `encryptToken` and `decryptToken`. Covers happy paths (round-trip, random IV), edge cases (empty string, long token, unicode), and error paths (wrong key, truncated payload, tampered ciphertext). |
 
 ---
 
@@ -114,6 +117,7 @@ Each adapter implements the `PlatformAdapter` interface and normalises platform-
 | `src/platforms/types.ts` | Core interfaces: `PlatformAdapter`, `OAuthTokens`, `PlatformAccountInfo`, `NormalizedAccountMetrics`, `NormalizedPost`. All adapters and services depend on these types. |
 | `src/platforms/index.ts` | `getPlatformAdapter(platform, env)` factory — returns the correct adapter by platform ID. `getAllPlatformAdapters(env)` returns all configured adapters. |
 | `src/platforms/x.ts` | X (Twitter) OAuth 2.0 adapter. Implements authorization URL, code exchange (with PKCE), token refresh, account metrics, and recent tweets fetch. |
+| `src/platforms/x.vitest.ts` | Vitest suite for the X adapter. Covers auth URL construction, metrics normalization, empty-timeline edge cases, and HTTP error propagation (401, 429, 503). |
 | `src/platforms/linkedin.ts` | LinkedIn OAuth 2.0 adapter. Implements authorization URL, code exchange, token refresh, org follower metrics, and UGC post fetch. |
 | `src/platforms/instagram.ts` | Instagram (Meta Graph API) adapter. Implements Facebook OAuth, linked Instagram Business account lookup, follower metrics, and media fetch. |
 
@@ -153,6 +157,7 @@ Each adapter implements the `PlatformAdapter` interface and normalises platform-
 |---|---|
 | `src/routes/oauth.ts` | `createOAuthRoutes(env)` — `GET /oauth/:platform/connect` (redirects to platform auth URL) and `GET /oauth/:platform/callback` (exchanges code, stores encrypted tokens). `createAccountsRoutes(env)` — `GET /accounts`. |
 | `src/routes/agent.ts` | `createAgentRoutes(env)` — `POST /agent/run` accepts `{ prompt }`, runs the agent loop, returns text + step log. |
+| `src/routes/agent.vitest.ts` | Vitest suite for `POST /agent/run`. Covers 200 success, user ID forwarding, missing/empty prompt (400), malformed JSON (400), and upstream agent failure (500). |
 | `src/routes/dev.ts` | `createDevRoutes(env)` — dev/ops utilities: `POST /dev/ingest/:accountId`, `POST /dev/embeddings/backfill`, `POST /dev/ingest/trigger/:accountId`, `GET /dev/accounts/:accountId/status`. `createHistoryRoutes(env)` — `GET /agent/runs`. |
 
 ---
